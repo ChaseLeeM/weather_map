@@ -17,7 +17,7 @@
   <a class="navbar-brand">Weather Map</a>
   <form class="form-inline">
     <input id="searchBar" class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+    <button id="searchBtn" class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
   </form>
 </nav>
 <!--Nav End -->
@@ -50,17 +50,6 @@
     center: [-98.4916, 29.4252]
   });
 
-  function geocode(search, token) {
-    var baseUrl = 'https://api.mapbox.com';
-    var endPoint = '/geocoding/v12/mapbox.places/';
-    return fetch(baseUrl + endPoint + encodeURIComponent(search) + '.json' + "?" + 'access_token=' + token)
-            .then(function(res) {
-              return res.json();
-              // to get all the data from the request, comment out the following three lines...
-            }).then(function(data) {
-              return data.features[0].center;
-            });
-    }
 
 
   $.get("http://api.openweathermap.org/data/2.5/forecast", {
@@ -93,7 +82,49 @@
     }
     });
 
+  function geocode(search, token) {
+    var baseUrl = 'https://api.mapbox.com';
+    var endPoint = '/geocoding/v12/mapbox.places/';
+    return fetch(baseUrl + endPoint + encodeURIComponent(search) + '.json' + "?" + 'access_token=' + token)
+            .then(function(res) {
+              return res.json();
+              // to get all the data from the request, comment out the following three lines...
+            }).then(function(data) {
+              return data.features[0].center;
+            });
+  }
 
+  function setMarker(lng, lat) {
+    var marker = new mapboxgl.Marker()
+            .setLngLat([lng, lat])
+            .addTo(map);
+  }
+
+
+  $("#searchBtn").click(function(e) {
+    e.preventDefault();
+    let search = $("#searchBar").val();
+    geocode(search, keys.mapbox).then(function(result) {
+      setMarker(result[0], result[1]);
+      map.flyTo({
+        center: result,
+        essential: true
+      });
+    });
+  });
+
+  function reverseGeocode(coordinates, token) {
+    var baseUrl = 'https://api.mapbox.com';
+    var endPoint = '/geocoding/v5/mapbox.places/';
+    return fetch(baseUrl + endPoint + coordinates.lng + "," + coordinates.lat + '.json' + "?" + 'access_token=' + token)
+            .then(function(res) {
+              return res.json();
+            })
+            // to get all the data from the request, comment out the following three lines...
+            .then(function(data) {
+              return data.features[0].place_name;
+            });
+  }
 
 </script>
 </body>
