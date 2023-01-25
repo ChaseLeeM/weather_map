@@ -16,109 +16,18 @@
 <nav class="navbar navbar-light bg-light">
   <a class="navbar-brand">Weather Map</a>
   <form class="form-inline">
-    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+    <input id="searchBar" class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
     <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
   </form>
 </nav>
 <!--Nav End -->
+
 <!-- Map and Cards Divs Start-->
-<div class="container">
-  <div class="row">
-    <div class="col-2">
-      <div class="card">
-        <img src="..." class="card-img-top" alt="...">
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-        </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item">An item</li>
-          <li class="list-group-item">A second item</li>
-          <li class="list-group-item">A third item</li>
-        </ul>
-        <div class="card-body">
-          <a href="#" class="card-link">Card link</a>
-          <a href="#" class="card-link">Another link</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-2">
-      <div class="card">
-        <img src="..." class="card-img-top" alt="...">
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-        </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item">An item</li>
-          <li class="list-group-item">A second item</li>
-          <li class="list-group-item">A third item</li>
-        </ul>
-        <div class="card-body">
-          <a href="#" class="card-link">Card link</a>
-          <a href="#" class="card-link">Another link</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-2">
-      <div class="card">
-        <img src="..." class="card-img-top" alt="...">
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-        </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item">An item</li>
-          <li class="list-group-item">A second item</li>
-          <li class="list-group-item">A third item</li>
-        </ul>
-        <div class="card-body">
-          <a href="#" class="card-link">Card link</a>
-          <a href="#" class="card-link">Another link</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-2">
-      <div class="card">
-        <img src="..." class="card-img-top" alt="...">
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-        </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item">An item</li>
-          <li class="list-group-item">A second item</li>
-          <li class="list-group-item">A third item</li>
-        </ul>
-        <div class="card-body">
-          <a href="#" class="card-link">Card link</a>
-          <a href="#" class="card-link">Another link</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-2">
-      <div class="card">
-        <img src="..." class="card-img-top" alt="...">
-        <div class="card-body">
-          <h5 class="card-title">Card title</h5>
-          <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-        </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item">An item</li>
-          <li class="list-group-item">A second item</li>
-          <li class="list-group-item">A third item</li>
-        </ul>
-        <div class="card-body">
-          <a href="#" class="card-link">Card link</a>
-          <a href="#" class="card-link">Another link</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-12">
+<div class="container-fluid">
+      <div class="card weather"></div>
       <div id='map' style='width: 100%; height: 500px;'></div>
-    </div>
-  </div>
 </div>
+
 <!--Map and Cards Div End-->
 <!-- Keys -->
 <script src="./js/keys_two.js"></script>
@@ -141,38 +50,48 @@
     center: [-98.4916, 29.4252]
   });
 
-  $.get("http://api.openweathermap.org/data/2.5/weather", {
-    APPID: keys.weather,
+  function geocode(search, token) {
+    var baseUrl = 'https://api.mapbox.com';
+    var endPoint = '/geocoding/v12/mapbox.places/';
+    return fetch(baseUrl + endPoint + encodeURIComponent(search) + '.json' + "?" + 'access_token=' + token)
+            .then(function(res) {
+              return res.json();
+              // to get all the data from the request, comment out the following three lines...
+            }).then(function(data) {
+              return data.features[0].center;
+            });
+    }
+
+
+  $.get("http://api.openweathermap.org/data/2.5/forecast", {
+    APPID: keys.weatherKey,
     q:     "San Antonio, US",
     units: "imperial"
   }).done(function(data) {
-    for (let i = 0; i < data.list.length; i += 5) {
-      console.log(data.list[i]);
+    for (let i = 0; i < data.list.length; i+=8) {
+      let weather = data.list[i];
+        let date = new Date(weather.dt * 1000);
+        let day = date.getDay();
+        let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        let dayName = days[day];
+        let temp = weather.main.temp;
+        let highLow = weather.main.temp_max + "/" + weather.main.temp_min;
+        let icon = weather.weather[0].icon;
+        let humidity = weather.main.humidity;
+        let description = weather.weather[0].description;
+        let html = `<div class="card col-2">
+                      <div class="card-body">
+                        <h5 class="card-title">${dayName}</h5>
+                            <p class="card-text">${temp}°F</p>
+                            <p class="card-text">${highLow}°F</p>
+                            <p class="card-text">${humidity}%</p>
+                            <p class="card-text">${description}</p>
+                            <img src="http://openweathermap.org/img/w/${icon}.png" alt="${description}">
+                        </div>
+                        </div>`;
+            $(".weather").append(html);
     }
-  });
-
-    map.on('load', function() {
-        map.addSource('openweathermap', {
-        type: 'raster',
-        tiles: [
-            'https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=' + keys.weather
-        ],
-        tileSize: 256
-        });
-        map.addLayer({
-        'id': 'openweathermap',
-        'type': 'raster',
-        'source': 'openweathermap',
-        'minzoom': 0,
-        'maxzoom': 22
-        });
     });
-
-
-
-
-
-
 
 
 
