@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Weather Map</title>
 
-  <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css' rel='stylesheet' />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
   <link rel="stylesheet" href="css/weather.css">
 
@@ -15,117 +15,31 @@
 <!--Nav Start -->
 <nav class="navbar navbar-light bg-light">
   <a class="navbar-brand">Weather Map</a>
-  <form class="form-inline">
+  <form class="form-inline" method="GET">
     <input id="searchBar" class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-    <button id="searchBtn" class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+    <button id="searchBtn" value="submit" class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
   </form>
 </nav>
 <!--Nav End -->
 
-<!-- Map and Cards Divs Start-->
+ <!--Map and Cards Divs Start-->
 <div class="container-fluid">
-      <div class="card weather"></div>
+      <div class="card weather" id="weather"></div>
       <div id='map' style='width: 100%; height: 500px;'></div>
 </div>
 
+
 <!--Map and Cards Div End-->
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <!-- Keys -->
 <script src="./js/keys_two.js"></script>
-<!-- Mapbox GeoCoder Utils -->
-<script src="js/mapbox-geocoder-utils_two.js"></script>
 <!-- Mapbox JS -->
-<script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
-<!--- Jquery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js"></script>
+<script src="js/mapbox-geocoder-utils_two.js"></script>
+<!-- Weather Map JS-->
+<script src="js/weather_map.js"></script>
 
 
-<script>
-  "use strict";
-
-  mapboxgl.accessToken = keys.mapbox;
-  let map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v12',
-    zoom: 10,
-    center: [-98.4916, 29.4252]
-  });
-
-
-
-  $.get("http://api.openweathermap.org/data/2.5/forecast", {
-    APPID: keys.weatherKey,
-    q:     "San Antonio, US",
-    units: "imperial"
-  }).done(function(data) {
-    for (let i = 0; i < data.list.length; i+=8) {
-      let weather = data.list[i];
-        let date = new Date(weather.dt * 1000);
-        let day = date.getDay();
-        let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        let dayName = days[day];
-        let temp = weather.main.temp;
-        let highLow = weather.main.temp_max + "/" + weather.main.temp_min;
-        let icon = weather.weather[0].icon;
-        let humidity = weather.main.humidity;
-        let description = weather.weather[0].description;
-        let html = `<div class="card col-2">
-                      <div class="card-body">
-                        <h5 class="card-title">${dayName}</h5>
-                            <p class="card-text">${temp}°F</p>
-                            <p class="card-text">${highLow}°F</p>
-                            <p class="card-text">${humidity}%</p>
-                            <p class="card-text">${description}</p>
-                            <img src="http://openweathermap.org/img/w/${icon}.png" alt="${description}">
-                        </div>
-                        </div>`;
-            $(".weather").append(html);
-    }
-    });
-
-  function geocode(search, token) {
-    var baseUrl = 'https://api.mapbox.com';
-    var endPoint = '/geocoding/v12/mapbox.places/';
-    return fetch(baseUrl + endPoint + encodeURIComponent(search) + '.json' + "?" + 'access_token=' + token)
-            .then(function(res) {
-              return res.json();
-              // to get all the data from the request, comment out the following three lines...
-            }).then(function(data) {
-              return data.features[0].center;
-            });
-  }
-
-  function setMarker(lng, lat) {
-    var marker = new mapboxgl.Marker()
-            .setLngLat([lng, lat])
-            .addTo(map);
-  }
-
-
-  $("#searchBtn").click(function(e) {
-    e.preventDefault();
-    let search = $("#searchBar").val();
-    geocode(search, keys.mapbox).then(function(result) {
-      setMarker(result[0], result[1]);
-      map.flyTo({
-        center: result,
-        essential: true
-      });
-    });
-  });
-
-  function reverseGeocode(coordinates, token) {
-    var baseUrl = 'https://api.mapbox.com';
-    var endPoint = '/geocoding/v5/mapbox.places/';
-    return fetch(baseUrl + endPoint + coordinates.lng + "," + coordinates.lat + '.json' + "?" + 'access_token=' + token)
-            .then(function(res) {
-              return res.json();
-            })
-            // to get all the data from the request, comment out the following three lines...
-            .then(function(data) {
-              return data.features[0].place_name;
-            });
-  }
-
-</script>
 </body>
 </html>
